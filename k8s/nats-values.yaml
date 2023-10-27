@@ -8,13 +8,24 @@ config:
       pvc:
         size: 10Gi
 
+natsBox:
+  enabled: false
+
 service:
   merge:
     spec:
       type: LoadBalancer
 
-# podTemplate:
-#   topologySpreadConstraints:
-#     kubernetes.io/hostname:
-#       maxSkew: 1
-#       whenUnsatisfiable: DoNotSchedule
+podTemplate:
+  merge:
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                - nats
+            topologyKey: "topology.kubernetes.io/zone"
