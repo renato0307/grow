@@ -1,0 +1,29 @@
+grafana:
+  enabled: true
+  service:
+    enabled: true
+    type: LoadBalancer
+    port: 3000
+
+prometheus:
+  enabled: true
+  alertmanager:
+    enabled: false
+  kubeStateMetrics:
+    enabled: false
+  nodeExporter:
+    enabled: false
+  server:
+    extraFlags:
+      - web.enable-lifecycle
+      - web.enable-remote-write-receiver
+  serverFiles:
+    prometheus.yml:
+      scrape_configs:
+        - job_name: prometheus
+          static_configs:
+            - targets:
+              - localhost:9090
+
+pushgateway:
+  enabled: true

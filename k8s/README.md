@@ -7,6 +7,7 @@
 ```
 echo -e "192.168.1.131\tpimaster" | sudo tee -a /etc/hosts
 echo -e "192.168.1.130\tpiworker1" | sudo tee -a /etc/hosts
+echo -e "192.168.1.129\tpiworker2" | sudo tee -a /etc/hosts
 ssh pi@pimaster
 sudo sed -i '$ s/$/ cgroup_memory=1 cgroup_enable=memory/g' /boot/firmware/cmdline.txt
 curl -sfL https://get.k3s.io | sh -
@@ -62,3 +63,24 @@ kubectl get nodes
 helm repo add nats https://nats-io.github.io/k8s/helm/charts/
 helm install nats nats/nats --values nats-values.yaml
 ```
+
+## Install Loki/Grafana/Prometheus
+
+Check https://github.com/grafana/helm-charts/tree/main/charts/loki-stack.
+
+
+
+Install
+
+```
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+helm upgrade --install loki grafana/loki-stack --values loki-values.yaml -n loki-system
+```
+
+Password to access to Grafana (user is `admin`)
+
+```
+kubectl get secret --namespace loki-system loki-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+```
+
