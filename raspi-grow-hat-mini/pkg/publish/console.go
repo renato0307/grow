@@ -5,9 +5,9 @@ import (
 	"log/slog"
 )
 
-func NewConsolePublisher() Publisher {
-	return func(name string, value float64) error {
-		slog.Info("reading", "plant", name, "value", fmt.Sprintf("%.15f", value))
+func NewConsolePublisher() func(Reading) error {
+	return func(r Reading) error {
+		slog.Info("reading", "plant", r.Name, "value", fmt.Sprintf("%.15f", r.Value))
 		return nil
 	}
 }

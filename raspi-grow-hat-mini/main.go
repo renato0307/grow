@@ -16,6 +16,8 @@ type MoistureReader interface {
 	Read() float64
 }
 
+type Publisher func(name string, value float64) error
+
 func main() {
 	opts := &slog.HandlerOptions{
 		Level: slog.LevelDebug,
@@ -37,7 +39,7 @@ func main() {
 			r.Close()
 		}
 	}()
-	publishers := setupPublishers(options.Publishers)
+	publishers := setupPublishers(options)
 	for {
 		readAndPublish(readers, publishers, options.Frequency)
 	}
@@ -49,7 +51,7 @@ func setupReaders(plants []options.Plant) []MoistureReader {
 	for i := range plants {
 		r, err := grow.NewGrowHatMoistureReader(plants[i].Name, plants[i].Connector)
 		if err != nil {
-			slog.Error("could not init reader for %s: %w", plants[i].Name, err)
+			slog.Error("could not init reader", "plant", plants[i].Name, "error", err)
 			os.Exit(1)
 		}
 		readers[i] = r
@@ -57,14 +59,19 @@ func setupReaders(plants []options.Plant) []MoistureReader {
 	return readers
 }
 
-func setupPublishers(publisherTypes []string) []publish.Publisher {
+func setupPublishers(opt options.Options) []publish.Publisher {
 	publishers := []publish.Publisher{}
-	for _, pt := range publisherTypes {
+	for _, pt := range opt.Publishers {
 		switch pt {
 		case options.Console:
 			publishers = append(publishers, publish.NewConsolePublisher())
 		case options.NATS:
-			publishers = append(publishers, publish.NewNATSPublisher())
+			natsPub, err := publish.NewNATSPublisher(opt.NATS)
+			if err != nil {
+				slog.Error("could not init NATS publisher", "error", err)
+				os.Exit(1)
+			}
+			publishers = append(publishers, natsPub)
 		}
 	}
 	return publishers
@@ -74,8 +81,15 @@ func readAndPublish(readers []MoistureReader, publishers []publish.Publisher, fr
 	for _, reader := range readers {
 		reading := reader.Read()
 		slog.Debug("reading", "name", reader.Name(), "value", reading)
-		for _, publish := range publishers {
-			publish(reader.Name(), reading)
+		for _, publisher := range publishers {
+			err := publisher(publish.Reading{
+				Timestamp: time.Now(),
+				Name:      reader.Name(),
+				Value:     reading,
+			})
+			if err != nil {
+				slog.Error("could not publish", "error", err)
+			}
 		}
 	}
 	time.Sleep(frequency)
