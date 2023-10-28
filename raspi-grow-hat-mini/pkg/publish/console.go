@@ -1,10 +1,13 @@
 package publish
 
-import "log"
+import (
+	"fmt"
+	"log/slog"
+)
 
 func NewConsolePublisher() Publisher {
 	return func(name string, value float64) error {
-		log.Printf("%s reads %.15f\n", name, value)
+		slog.Info("reading", "plant", name, "value", fmt.Sprintf("%.15f", value))
 		return nil
 	}
 }

@@ -1,10 +1,13 @@
 package publish
 
-import "log"
+import (
+	"fmt"
+	"log/slog"
+)
 
 func NewNATSPublisher() Publisher {
 	return func(name string, value float64) error {
-		log.Printf("publishing %s:%.15f to NATS\n", name, value)
+		slog.Info("publising to NATS", "plant", name, "value", fmt.Sprintf("%.15f", value))
 		return nil
 	}
 }

@@ -1,7 +1,8 @@
 package main
 
 import (
-	"log"
+	"log/slog"
+	"os"
 	"time"
 
 	"github.com/grow/monitor-raspi4/pkg/grow"
@@ -16,12 +17,19 @@ type MoistureReader interface {
 }
 
 func main() {
+	opts := &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	}
+	handler := slog.NewJSONHandler(os.Stdout, opts)
+	slog.SetDefault(slog.New(handler))
+
 	options, err := options.Get()
 	if err != nil {
-		log.Fatal("invalid options")
+		slog.Error("invalid options")
+		os.Exit(1)
 	}
-	log.Println("(i) running for", options.Plants)
-	log.Println("(i) publishing to", options.Publishers)
+	slog.Info("plants configured", "plants", options.Plants)
+	slog.Info("publishers configured", "publishers", options.Publishers)
 
 	readers := setupReaders(options.Plants)
 	defer func() {
@@ -41,7 +49,8 @@ func setupReaders(plants []options.Plant) []MoistureReader {
 	for i := range plants {
 		r, err := grow.NewGrowHatMoistureReader(plants[i].Name, plants[i].Connector)
 		if err != nil {
-			log.Fatalf("could not init reader for %s: %w", plants[i].Name, err)
+			slog.Error("could not init reader for %s: %w", plants[i].Name, err)
+			os.Exit(1)
 		}
 		readers[i] = r
 	}
@@ -64,7 +73,7 @@ func setupPublishers(publisherTypes []string) []publish.Publisher {
 func readAndPublish(readers []MoistureReader, publishers []publish.Publisher, frequency time.Duration) {
 	for _, reader := range readers {
 		reading := reader.Read()
-		log.Println("read", reading)
+		slog.Debug("reading", "name", reader.Name(), "value", reading)
 		for _, publish := range publishers {
 			publish(reader.Name(), reading)
 		}
