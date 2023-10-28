@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/grow/monitor-raspi4/pkg/grow"
+	"github.com/grow/monitor-raspi4/pkg/options"
+	"github.com/grow/monitor-raspi4/pkg/publish"
 )
 
 type MoistureReader interface {
@@ -14,38 +16,58 @@ type MoistureReader interface {
 }
 
 func main() {
-	plants := []struct {
-		name      string
-		connector int
-	}{
-		{
-			name:      "espadas",
-			connector: grow.Moisture1,
-		},
-		{
-			name:      "abacateiro",
-			connector: grow.Moisture2,
-		},
-		{
-			name:      "pilea peperomioides",
-			connector: grow.Moisture3,
-		},
+	options, err := options.Get()
+	if err != nil {
+		log.Fatal("invalid options")
+	}
+	log.Println("(i) running for", options.Plants)
+	log.Println("(i) publishing to", options.Publishers)
+
+	readers := setupReaders(options.Plants)
+	defer func() {
+		for _, r := range readers {
+			r.Close()
+		}
+	}()
+	publishers := setupPublishers(options.Publishers)
+	for {
+		readAndPublish(readers, publishers, options.Frequency)
 	}
 
+}
+
+func setupReaders(plants []options.Plant) []MoistureReader {
 	readers := make([]MoistureReader, len(plants))
 	for i := range plants {
-		r, err := grow.NewGrowHatMoistureReader(plants[i].name, plants[i].connector)
+		r, err := grow.NewGrowHatMoistureReader(plants[i].Name, plants[i].Connector)
 		if err != nil {
-			log.Fatalf("could not init reader for %s: %w", plants[i].name, err)
+			log.Fatalf("could not init reader for %s: %w", plants[i].Name, err)
 		}
-		defer r.Close()
 		readers[i] = r
 	}
+	return readers
+}
 
-	for {
-		for _, r := range readers {
-			log.Printf("%s reads %.15f\n", r.Name(), r.Read())
+func setupPublishers(publisherTypes []string) []publish.Publisher {
+	publishers := []publish.Publisher{}
+	for _, pt := range publisherTypes {
+		switch pt {
+		case options.Console:
+			publishers = append(publishers, publish.NewConsolePublisher())
+		case options.NATS:
+			publishers = append(publishers, publish.NewNATSPublisher())
 		}
-		time.Sleep(1 * time.Second)
 	}
+	return publishers
+}
+
+func readAndPublish(readers []MoistureReader, publishers []publish.Publisher, frequency time.Duration) {
+	for _, reader := range readers {
+		reading := reader.Read()
+		log.Println("read", reading)
+		for _, publish := range publishers {
+			publish(reader.Name(), reading)
+		}
+	}
+	time.Sleep(frequency)
 }
