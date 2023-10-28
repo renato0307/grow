@@ -2,7 +2,7 @@ package grow
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"time"
 
 	"github.com/warthog618/gpiod"
@@ -27,7 +27,7 @@ type GrowHatMoistureReader struct {
 }
 
 func NewGrowHatMoistureReader(name string, offset int) (*GrowHatMoistureReader, error) {
-	log.Println("(i) initializing", name, offset)
+	slog.Debug("initializing reader", "name", name, "offset", offset)
 	r := &GrowHatMoistureReader{
 		name:            name,
 		offset:          offset,
@@ -66,7 +66,7 @@ func (r *GrowHatMoistureReader) Name() string {
 }
 
 func (r *GrowHatMoistureReader) handler(evt gpiod.LineEvent) {
-	log.Println("handling", evt.Offset)
+	slog.Debug("handling value", "offset", evt.Offset)
 	r.count += 1
 	timeElapsed := float64(time.Now().UnixNano()-r.timeLastReading.UnixNano()) / 1000000000
 	if timeElapsed >= 1.0 {
