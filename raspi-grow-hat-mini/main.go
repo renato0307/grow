@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 	"time"
@@ -19,21 +20,21 @@ type MoistureReader interface {
 type Publisher func(name string, value float64) error
 
 func main() {
-	opts := &slog.HandlerOptions{
-		Level: slog.LevelDebug,
-	}
-	handler := slog.NewJSONHandler(os.Stdout, opts)
-	slog.SetDefault(slog.New(handler))
-
 	options, err := options.Get()
 	if err != nil {
-		slog.Error("invalid options")
+		fmt.Println("invalid options:", err)
 		os.Exit(1)
 	}
-	slog.Info("plants configured", "plants", options.Plants)
+	opts := &slog.HandlerOptions{
+		Level: options.LogLevel,
+	}
+	handler := slog.NewTextHandler(os.Stdout, opts)
+	slog.SetDefault(slog.New(handler))
+
+	slog.Info("sensors configured", "sensors", options.Sensors)
 	slog.Info("publishers configured", "publishers", options.Publishers)
 
-	readers := setupReaders(options.Plants)
+	readers := setupReaders(options.Sensors)
 	defer func() {
 		for _, r := range readers {
 			r.Close()
@@ -46,7 +47,7 @@ func main() {
 
 }
 
-func setupReaders(plants []options.Plant) []MoistureReader {
+func setupReaders(plants []options.Sensors) []MoistureReader {
 	readers := make([]MoistureReader, len(plants))
 	for i := range plants {
 		r, err := grow.NewGrowHatMoistureReader(plants[i].Name, plants[i].Connector)
