@@ -18,6 +18,9 @@ type Plant struct {
 
 type NATSConfig struct {
 	URL string
+
+	StreamName    string
+	StreamSubject string
 }
 
 type Options struct {
@@ -29,10 +32,12 @@ type Options struct {
 
 func Get() (Options, error) {
 	return Options{
-		Frequency:  1 * time.Second,
+		Frequency:  5 * time.Second,
 		Publishers: []string{Console, NATS},
 		NATS: NATSConfig{
-			URL: "nats://192.168.1.129:4222,nats://192.168.1.130:4222,nats://192.168.1.131:4222",
+			URL:           "nats://192.168.1.129:4222,nats://192.168.1.130:4222,nats://192.168.1.131:4222",
+			StreamName:    "PlantReadings",
+			StreamSubject: "PlantReadings.new",
 		},
 		Plants: []Plant{
 			{
