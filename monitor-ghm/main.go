@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/grow/monitor-ghm/pkg/grow"
@@ -34,16 +36,28 @@ func main() {
 	slog.Info("sensors configured", "sensors", options.Sensors)
 	slog.Info("publishers configured", "publishers", options.Publishers)
 
+	// starts sensor readers
 	readers := setupReaders(options.Sensors)
 	defer func() {
 		for _, r := range readers {
 			r.Close()
 		}
 	}()
+
+	// initializes the publishers
 	publishers := setupPublishers(options)
-	for {
-		readAndPublish(readers, publishers, options.Frequency)
-	}
+
+	// main loop, read sensor values and publish
+	go func() {
+		for {
+			readAndPublish(readers, publishers, options.Frequency)
+		}
+	}()
+
+	// waits for termination
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
+	<-sig
 }
 
 func setupReaders(plants []options.Sensors) []MoistureReader {
