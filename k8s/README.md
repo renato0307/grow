@@ -84,3 +84,12 @@ Password to access to Grafana (user is `admin`)
 kubectl get secret --namespace loki-system loki-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
 ```
 
+
+## Install InfluxDB
+
+```
+helm repo add influxdata https://helm.influxdata.com
+helm upgrade -i influxdb influxdata/influxdb2
+```
+
+

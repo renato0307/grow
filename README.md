@@ -18,6 +18,15 @@ Processes the information and displays it with Prometheus/Grafana.
 * `monitor-ghm` - monitor running on raspberry pi with Pimonori Grow HAT Mini (GHM)
 * `service-ingestion` - service to ingest readings from NATS jetstream
 
+## Useful NATS commands
+
+|What|Command|
+|----|-------|
+|Stream summary|`nats --server nats://192.168.1.131:4222 stream report`|
+|Delete stream |`nats --server nats://192.168.1.131:4222 stream rm PlantReadings`|
+|List stream consumers|`nats --server nats://192.168.1.131:4222 consumer ls PlantReadings`|
+|Delete stream consumer|`nats --server nats://192.168.1.131:4222 consumer rm PlantReadings PlantReadingsIngestion`|
+
 ## TODO
 
 ### Milestone 1 - home plants
