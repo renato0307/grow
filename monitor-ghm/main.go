@@ -25,10 +25,10 @@ func main() {
 		fmt.Println("invalid options:", err)
 		os.Exit(1)
 	}
-	opts := &slog.HandlerOptions{
+	slogOptions := &slog.HandlerOptions{
 		Level: options.LogLevel,
 	}
-	handler := slog.NewTextHandler(os.Stdout, opts)
+	handler := slog.NewTextHandler(os.Stdout, slogOptions)
 	slog.SetDefault(slog.New(handler))
 
 	slog.Info("sensors configured", "sensors", options.Sensors)
@@ -44,7 +44,6 @@ func main() {
 	for {
 		readAndPublish(readers, publishers, options.Frequency)
 	}
-
 }
 
 func setupReaders(plants []options.Sensors) []MoistureReader {
