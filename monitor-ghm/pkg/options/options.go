@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/grow/monitor-raspi4/pkg/grow"
+	"github.com/grow/monitor-ghm/pkg/grow"
 	"github.com/spf13/pflag"
 )
 

@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/grow/monitor-raspi4/pkg/options"
+	"github.com/grow/monitor-ghm/pkg/options"
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
 )

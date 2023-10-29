@@ -1,4 +1,4 @@
-module github.com/grow/monitor-raspi4
+module github.com/grow/monitor-ghm
 
 go 1.21.3
 

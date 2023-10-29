@@ -6,9 +6,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/grow/monitor-raspi4/pkg/grow"
-	"github.com/grow/monitor-raspi4/pkg/options"
-	"github.com/grow/monitor-raspi4/pkg/publish"
+	"github.com/grow/monitor-ghm/pkg/grow"
+	"github.com/grow/monitor-ghm/pkg/options"
+	"github.com/grow/monitor-ghm/pkg/publish"
 )
 
 type MoistureReader interface {
