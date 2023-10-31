@@ -64,32 +64,24 @@ helm repo add nats https://nats-io.github.io/k8s/helm/charts/
 helm install nats nats/nats --values nats-values.yaml
 ```
 
-## Install Loki/Grafana/Prometheus
-
-Check https://github.com/grafana/helm-charts/tree/main/charts/loki-stack.
-
-
+## Install Prometheus/Grafana
 
 Install
 
 ```
-helm repo add grafana https://grafana.github.io/helm-charts
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
-helm upgrade --install loki grafana/loki-stack --values loki-values.yaml -n loki-system
+helm upgrade --install kube-prometheus-stack prometheus-community/kube-prometheus-stack -n kube-prometheus --create-namespace --values prom-values.yaml
 ```
 
 Password to access to Grafana (user is `admin`)
 
 ```
-kubectl get secret --namespace loki-system loki-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+kubectl get secret --namespace kube-prometheus kube-prometheus-stack-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
 ```
 
-
-## Install InfluxDB
+To see all possible chart values:
 
 ```
-helm repo add influxdata https://helm.influxdata.com
-helm upgrade -i influxdb influxdata/influxdb2
+helm show values prometheus-community/kube-prometheus-stack
 ```
-
-

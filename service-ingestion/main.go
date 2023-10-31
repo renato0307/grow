@@ -11,11 +11,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/grow/service-ingestion/pkg/options"
-
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"github.com/castai/promwrite"
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
+
+	"github.com/grow/service-ingestion/pkg/options"
 )
 
 type Reading struct {
@@ -73,8 +73,8 @@ func main() {
 			return
 		}
 
-		slog.Debug("writing to influxdb", "name", reading.Name, "value", value, "ts", reading.Timestamp)
-		err = writeToInfluxDB(reading.Name, reading.Timestamp, value, options.InfluxDB)
+		slog.Debug("writing to prometheus", "name", reading.Name, "value", value, "ts", reading.Timestamp)
+		err = storeMetric(reading.Name, reading.Timestamp, value, options.Prometheus)
 		if err != nil {
 			slog.Warn("could not write reading", "error", err)
 			return
@@ -94,18 +94,28 @@ func main() {
 	<-sig
 }
 
-func writeToInfluxDB(name string, timestamp time.Time, value float64, influxDB options.InfluxDBConfig) error {
-	// Create a new client using an InfluxDB server base URL and an authentication token
-	client := influxdb2.NewClient(influxDB.URL, influxDB.Token)
+func storeMetric(name string, timestamp time.Time, value float64, promConfig options.PrometheusConfig) error {
+	client := promwrite.NewClient(promConfig.URL)
+	_, err := client.Write(context.Background(), &promwrite.WriteRequest{
+		TimeSeries: []promwrite.TimeSeries{
+			{
+				Labels: []promwrite.Label{
+					{
+						Name:  "__name__",
+						Value: "soil_moisture",
+					},
+					{
+						Name:  "name",
+						Value: name,
+					},
+				},
+				Sample: promwrite.Sample{
+					Time:  timestamp,
+					Value: value,
+				},
+			},
+		},
+	})
 
-	//Wwrite point asynchronously
-	writeAPI := client.WriteAPIBlocking(influxDB.Organization, influxDB.Bucket)
-
-	// Create point
-	p := influxdb2.NewPointWithMeasurement("soil_moisture").
-		AddTag("name", name).
-		AddField("value", value).
-		SetTime(timestamp)
-
-	return writeAPI.WritePoint(context.Background(), p)
+	return err
 }
