@@ -14,6 +14,7 @@ Processes the information and displays it with Prometheus/Grafana.
 
 ## Structure
 
+* `charts` - helm charts from this repository
 * `k8s` - setups a k8s cluster to run NATS and Prometheus
 * `monitor-ghm` - monitor running on raspberry pi with Pimonori Grow HAT Mini (GHM)
 * `service-ingestion` - service to ingest readings from NATS jetstream
