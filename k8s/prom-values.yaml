@@ -1,6 +1,0 @@
-
-prometheus:
-  prometheusSpec:
-    enableRemoteWriteReceiver: true
-    tsdb:
-      outOfOrderTimeWindow: 5d

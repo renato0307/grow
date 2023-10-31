@@ -1,53 +1,26 @@
-# Grow
+## Usage
 
-Plant monitoring system.
+[Helm](https://helm.sh) must be installed to use the charts.  Please refer to
+Helm's [documentation](https://helm.sh/docs) to get started.
 
-Uses Raspberry PIs, NATS, and Prometheus.
+Once Helm has been set up correctly, add the repo as follows:
 
-## How
+```
+helm repo add grow https://renato0307.github.io/grow 
+```
 
-Collects information about plants and soil moisture.
+If you had already added this repo earlier, run `helm repo update` to retrieve
+the latest versions of the packages.  You can then run `helm search repo
+grow` to see the charts.
 
-Publishs the collected data into a NATS cluster.
+To install the <chart-name> chart:
 
-Processes the information and displays it with Prometheus/Grafana.
+```
+helm install my-<chart-name> grow/<chart-name>
+```
 
-## Structure
+To uninstall the chart:
 
-* `k8s` - setups a k8s cluster to run NATS and Prometheus
-* `monitor-ghm` - monitor running on raspberry pi with Pimonori Grow HAT Mini (GHM)
-* `service-ingestion` - service to ingest readings from NATS jetstream
-
-## Useful NATS commands
-
-|What|Command|
-|----|-------|
-|Stream summary|`nats --server nats://192.168.1.131:4222 stream report`|
-|Delete stream |`nats --server nats://192.168.1.131:4222 stream rm PlantReadings`|
-|List stream consumers|`nats --server nats://192.168.1.131:4222 consumer ls PlantReadings`|
-|Delete stream consumer|`nats --server nats://192.168.1.131:4222 consumer rm PlantReadings PlantReadingsIngestion`|
-
-## TODO
-
-### Milestone 1 - home plants
-
-1. ~~Send data to NATS server/jetstreams~~
-1. Consume jetstream messages and publish to prometheus
-1. Dinamic configuration of the sensors
-1. Show data on Grafana
-1. Calibrate sensors
-1. Alarms for plants with low soil moisture
-1. Loadbalancer and external IP for NATS
-1. NATS security (TLS, auth, etc.)
-1. Mobile/Slack notifications
-1. IaC for K8s cluster (FluxCD)
-
-### Milestone 2 - remote monitoring
-
-1. Acquire Raspberry Pico or ESP32, basic sensors, batery and GSM module
-1. Basic monitor
-1. Configure NATS to support MQTT
-1. Comunication MQTT via GSM
-1. Deep sleep
-1. Measure consumptions and batery life
-1. Batery life optimizations
+```
+helm delete my-<chart-name>
+```
