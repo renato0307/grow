@@ -33,9 +33,9 @@ Processes the information and displays it with Prometheus/Grafana.
 ### Milestone 1 - home plants
 
 1. ~~Send data to NATS server/jetstreams~~
-1. Consume jetstream messages and publish to prometheus
+1. ~~Consume jetstream messages and publish to prometheus~~
 1. Dinamic configuration of the sensors
-1. Show data on Grafana
+1. ~~Show data on Grafana~~
 1. Calibrate sensors
 1. Alarms for plants with low soil moisture
 1. Loadbalancer and external IP for NATS
