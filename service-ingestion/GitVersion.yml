@@ -1,5 +1,4 @@
 ---
-next-version: 0.0.1
 mode: ContinuousDelivery
 increment: Inherit
 commit-message-incrementing: Enabled

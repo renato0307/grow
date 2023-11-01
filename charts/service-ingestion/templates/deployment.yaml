@@ -29,14 +29,17 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
+          args:
+          - --log-level=debug
+          - --prom-url=http://kube-prometheus-stack-prometheus.kube-prometheus.svc.cluster.local/api/v1/write
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - name: http
-              containerPort: {{ .Values.service.port }}
-              protocol: TCP
+          # ports:
+          #   - name: http
+          #     containerPort: {{ .Values.service.port }}
+          #     protocol: TCP
           livenessProbe:
             httpGet:
               path: /
