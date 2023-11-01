@@ -52,3 +52,26 @@ Processes the information and displays it with Prometheus/Grafana.
 1. Deep sleep
 1. Measure consumptions and batery life
 1. Batery life optimizations
+
+## Build
+
+### Helm charts
+
+The [chart releaser action](https://github.com/helm/chart-releaser-action) is used
+to release helm charts.
+
+Check the workflow file at `.github/workflows/helm-release.yaml`.
+
+### Docker images
+
+Each service has its own versioning.
+
+We use [GitVersion](https://gitversion.net/) to automatically generate
+new versions using [SemVer](https://semver.org/).
+
+Each service contains a `GitVersion.yml` file and a release action.
+
+Example for the ingestion service:
+
+* `service-ingestion/GitVersion.yml`
+* `.github/workflows/service-ingestion-release.yaml`
