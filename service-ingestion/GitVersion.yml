@@ -1,0 +1,11 @@
+---
+next-version: 0.0.1
+mode: ContinuousDelivery
+increment: Inherit
+commit-message-incrementing: Enabled
+major-version-bump-message: '^((breaking|major):)'
+minor-version-bump-message: '^(((feat|feature|minor):)|Bump)'
+patch-version-bump-message: '^((revert|perf|test|refactor|fix|bugfix|patch|chore):)'
+no-bump-message: '^((ci|none|docs|style|skip)):'
+update-build-number: true
+tag-prefix: 'service-ingestion'
