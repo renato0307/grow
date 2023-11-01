@@ -26,6 +26,7 @@ type Options struct {
 	LogLevel   *slog.LevelVar
 	NATS       NATSConfig
 	Prometheus PrometheusConfig
+	ProbesAddr string
 }
 
 func Get() (Options, error) {
@@ -37,6 +38,7 @@ func Get() (Options, error) {
 	pflag.StringVar(&opt.NATS.StreamSubject, "nats-stream-sub", "PlantReadings.home", "NATS stream subject name to publish messages")
 	pflag.StringVar(&opt.NATS.URL, "nats-url", DefaultNATSURL, "NATS URL to publish the messages")
 	pflag.StringVar(&opt.Prometheus.URL, "prom-url", DefaultPrometheusURL, "Prometheus URL to send metrics")
+	pflag.StringVar(&opt.ProbesAddr, "probes-addr", ":8222", "The bind address for health and readiness probes")
 	pflag.StringVar(&logLevelValue, "log-level", "info", "Changes the log level like info, warn, error, and debug")
 
 	pflag.Parse()

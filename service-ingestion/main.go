@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 	"strconv"
@@ -36,26 +37,46 @@ func main() {
 	handler := slog.NewTextHandler(os.Stdout, slogOptions)
 	slog.SetDefault(slog.New(handler))
 
-	// connect to nats server
+	// starts message processing
+	cc, err := consumeMessages(options)
+	if err != nil {
+		slog.Error("error processing messages", "error", err)
+		os.Exit(1)
+	}
+	defer cc.Stop()
+
+	// inits probes
+	go func() {
+		probe := func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte("OK"))
+		}
+		http.HandleFunc("/healthz", probe)
+		http.HandleFunc("/readyz", probe)
+		http.ListenAndServe(options.ProbesAddr, nil)
+	}()
+
+	// waits for termination
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
+	<-sig
+}
+
+func consumeMessages(options options.Options) (jetstream.ConsumeContext, error) {
 	nc, _ := nats.Connect(options.NATS.URL)
 
-	// create jetstream context from nats connection
 	js, _ := jetstream.New(nc)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	// create a consumer (this is an idempotent operation)
 	cons, err := js.CreateConsumer(ctx, options.NATS.StreamName, jetstream.ConsumerConfig{
 		Durable:   "PlantReadingsIngestion",
 		AckPolicy: jetstream.AckExplicitPolicy,
 	})
 	if err != nil {
-		slog.Error("could not create consumer", "error", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("could not create consumer: %w", err)
 	}
 
-	// consume messages from the consumer in callback
 	cc, err := cons.Consume(func(msg jetstream.Msg) {
 		slog.Debug("received jetstream message", "msg", string(msg.Data()))
 
@@ -86,12 +107,8 @@ func main() {
 		slog.Error("error consuming messages", "error", err)
 		os.Exit(1)
 	}
-	defer cc.Stop()
 
-	// waits for termination
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
-	<-sig
+	return cc, nil
 }
 
 func storeMetric(name string, timestamp time.Time, value float64, promConfig options.PrometheusConfig) error {
