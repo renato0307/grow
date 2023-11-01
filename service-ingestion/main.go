@@ -76,7 +76,7 @@ func main() {
 		slog.Debug("writing to prometheus", "name", reading.Name, "value", value, "ts", reading.Timestamp)
 		err = storeMetric(reading.Name, reading.Timestamp, value, options.Prometheus)
 		if err != nil {
-			slog.Warn("could not write reading", "error", err)
+			slog.Warn("could not write reading to prometheus", "error", err)
 			return
 		}
 		slog.Debug("writing done", "name", reading.Name, "value", value, "ts", reading.Timestamp)
