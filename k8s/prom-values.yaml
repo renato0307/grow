@@ -4,3 +4,9 @@ prometheus:
     enableRemoteWriteReceiver: true
     tsdb:
       outOfOrderTimeWindow: 5d
+
+grafana:
+  adminPassword: ""
+  service:
+    type: LoadBalancer
+    port: 3000
