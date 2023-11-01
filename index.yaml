@@ -1,3 +1,14 @@
 apiVersion: v1
-entries: {}
-generated: "2023-11-01T08:15:19.848156152Z"
+entries:
+  service-ingestion:
+  - apiVersion: v2
+    appVersion: v0.3.0
+    created: "2023-11-01T21:15:51.057045159Z"
+    description: Ingests plants sensor data into prometheus
+    digest: ae508082fcd88f316e06f17b9faa4990a01b7d1d87be616695a36d6b9d066dca
+    name: service-ingestion
+    type: application
+    urls:
+    - https://github.com/renato0307/grow/releases/download/helmchart-service-ingestion-0.1.1/service-ingestion-0.1.1.tgz
+    version: 0.1.1
+generated: "2023-11-01T21:15:51.057049359Z"
