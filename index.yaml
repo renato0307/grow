@@ -1,34 +1,3 @@
 apiVersion: v1
-entries:
-  service-ingestion:
-  - apiVersion: v2
-    appVersion: 1.16.0
-    created: "2023-10-31T22:58:42.138370827Z"
-    description: A Helm chart for Kubernetes
-    digest: 38555077cb98a921eda43cfd1d511c3bc9ec808a225e092fda49d1c31f688d84
-    name: service-ingestion
-    type: application
-    urls:
-    - https://github.com/renato0307/grow/releases/download/service-ingestion-0.1.0/service-ingestion-0.1.0.tgz
-    version: 0.1.0
-  - apiVersion: v2
-    appVersion: 1.16.0
-    created: "2023-11-01T08:15:19.848147652Z"
-    description: A Helm chart for Kubernetes
-    digest: e17dbcca50621ffcb01ef80836883ac9f75e5e162fb81752e996a48c7e211902
-    name: service-ingestion
-    type: application
-    urls:
-    - https://github.com/renato0307/grow/releases/download/helmchart-service-ingestion-0.0.2/service-ingestion-0.0.2.tgz
-    version: 0.0.2
-  - apiVersion: v2
-    appVersion: 1.16.0
-    created: "2023-11-01T08:07:58.970261083Z"
-    description: A Helm chart for Kubernetes
-    digest: 99180c3dfa1de39e22f73d8bceb845fa59ced29380ec9a76696c60a3ecba37e7
-    name: service-ingestion
-    type: application
-    urls:
-    - https://github.com/renato0307/grow/releases/download/service-ingestion-0.0.1/service-ingestion-0.0.1.tgz
-    version: 0.0.1
+entries: {}
 generated: "2023-11-01T08:15:19.848156152Z"
