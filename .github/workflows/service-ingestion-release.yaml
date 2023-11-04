@@ -4,7 +4,7 @@ on:
     branches:
       - main
     paths:
-      - 'service-ingestion/**/*'
+      - 'ingestion-service/**/*'
 jobs:
   release:
     permissions:
@@ -28,8 +28,8 @@ jobs:
         uses: gittools/actions/gitversion/execute@v0
         with:
           useConfigFile: true
-          targetPath: service-ingestion
-          configFilePath: service-ingestion/GitVersion.yml
+          targetPath: ingestion-service
+          configFilePath: ingestion-service/GitVersion.yml
 
       - name: Create Release
         id: create_release
@@ -37,8 +37,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: 'service-ingestion-${{ steps.gitversion.outputs.semVer }}'
-          name: 'service-ingestion-${{ steps.gitversion.outputs.semVer }}'
+          tag_name: 'ingestion-service-${{ steps.gitversion.outputs.semVer }}'
+          name: 'ingestion-service-${{ steps.gitversion.outputs.semVer }}'
           draft: false
           prerelease: false
           generate_release_notes: true
@@ -51,9 +51,9 @@ jobs:
           password: ${{secrets.GITHUB_TOKEN}}
 
       - name: Build Docker Image
-        working-directory: ./service-ingestion
+        working-directory: ./ingestion-service
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          docker build . --tag ghcr.io/renato0307/grow-service-ingestion:v${{ steps.gitversion.outputs.semVer }}
-          docker push ghcr.io/renato0307/grow-service-ingestion:v${{ steps.gitversion.outputs.semVer }}
+          docker build . --tag ghcr.io/renato0307/grow-ingestion-service:v${{ steps.gitversion.outputs.semVer }}
+          docker push ghcr.io/renato0307/grow-ingestion-service:v${{ steps.gitversion.outputs.semVer }}

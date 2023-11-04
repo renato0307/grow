@@ -17,7 +17,7 @@ Processes the information and displays it with Prometheus/Grafana.
 * `charts` - helm charts from this repository (more info [here](https://renato0307.github.io/grow/))
 * `k8s` - setups a k8s cluster to run NATS and Prometheus
 * `monitor-ghm` - monitor running on raspberry pi with Pimonori Grow HAT Mini (GHM)
-* `service-ingestion` - service to ingest readings from NATS jetstream
+* `ingestion-service` - service to ingest readings from NATS jetstream
 
 ## Useful NATS commands
 
@@ -73,5 +73,5 @@ Each service contains a `GitVersion.yml` file and a release action.
 
 Example for the ingestion service:
 
-* `service-ingestion/GitVersion.yml`
-* `.github/workflows/service-ingestion-release.yaml`
+* `ingestion-service/GitVersion.yml`
+* `.github/workflows/ingestion-service-release.yaml`

@@ -1,4 +1,4 @@
-IMG=grow-service-ingestion
+IMG=grow-ingestion-service
 
 .PHONY: docker-build
 docker-build:

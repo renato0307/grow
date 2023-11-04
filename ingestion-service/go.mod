@@ -1,4 +1,4 @@
-module github.com/grow/service-ingestion
+module github.com/grow/ingestion-service
 
 go 1.21
 

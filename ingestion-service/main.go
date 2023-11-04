@@ -16,7 +16,7 @@ import (
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
 
-	"github.com/grow/service-ingestion/pkg/options"
+	"github.com/grow/ingestion-service/pkg/options"
 )
 
 type Reading struct {

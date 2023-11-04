@@ -7,4 +7,4 @@ minor-version-bump-message: '^(((feat|feature|minor):)|Bump)'
 patch-version-bump-message: '^((revert|perf|test|refactor|fix|bugfix|patch|chore):)'
 no-bump-message: '^((ci|none|docs|style|skip)):'
 update-build-number: true
-tag-prefix: 'service-ingestion-'
+tag-prefix: 'ingestion-service-'

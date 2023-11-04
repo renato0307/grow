@@ -2,4 +2,4 @@ go 1.21
 
 use ./monitor-ghm
 
-use ./service-ingestion
+use ./ingestion-service

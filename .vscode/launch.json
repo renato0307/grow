@@ -5,11 +5,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "service-ingestion",
+            "name": "ingestion-service",
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceFolder}/service-ingestion",
+            "program": "${workspaceFolder}/ingestion-service",
             "args": [
                 "--log-level",
                 "debug"

@@ -89,5 +89,5 @@ helm show values prometheus-community/kube-prometheus-stack
 ## Install the ingestion service
 
 ```
-helm upgrade --install -n ingestion-service --create-namespace ingestion-service grow/service-ingestion --version 0.1.1
+helm upgrade --install -n ingestion-service --create-namespace ingestion-service grow/ingestion-service --version 0.1.1
 ```
