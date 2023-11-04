@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "service-ingestion.fullname" . }}
+  name: {{ include "ingestion-service.fullname" . }}
   labels:
-    {{- include "service-ingestion.labels" . | nindent 4 }}
+    {{- include "ingestion-service.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "service-ingestion.selectorLabels" . | nindent 6 }}
+      {{- include "ingestion-service.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -18,13 +18,13 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "service-ingestion.selectorLabels" . | nindent 8 }}
+        {{- include "ingestion-service.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "service-ingestion.serviceAccountName" . }}
+      serviceAccountName: {{ include "ingestion-service.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
