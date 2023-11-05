@@ -1,5 +1,9 @@
 go 1.21
 
+use ./ingestion-service
+
 use ./monitor-ghm
 
-use ./ingestion-service
+use ./router-config-controller
+
+use ./go-fibergateway-gr241ag

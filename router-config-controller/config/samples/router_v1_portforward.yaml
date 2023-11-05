@@ -1,0 +1,20 @@
+apiVersion: router.willful.be/v1
+kind: PortForward
+metadata:
+  labels:
+    app.kubernetes.io/name: portforward
+    app.kubernetes.io/instance: portforward-sample
+    app.kubernetes.io/part-of: router-config-controller
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: router-config-controller
+  name: portforward-sample
+spec:
+  rule:
+    externalPortEnd: 4222
+    externalPortStart: 4222
+    interface: veip0.1
+    internalPortEnd: 4222
+    internalPortStart: 4222
+    protocol: TCP
+    serverIP: "192.168.1.2"
+    serviceName: NATS
