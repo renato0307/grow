@@ -2,7 +2,7 @@
 
 This is a Go library to communicate with the Altice Fiber Gateway GR241AG.
 
-It uses the Telnet CLI under the covers.
+Uses the Telnet CLI under the covers.
 
 ## How to use
 
