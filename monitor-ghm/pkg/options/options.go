@@ -14,7 +14,7 @@ import (
 const (
 	Console        = "console" // Console publisher
 	NATS           = "nats"    // NATS publisher
-	DefaultNATSURL = "nats://192.168.1.129:4222,nats://192.168.1.130:4222,nats://192.168.1.131:4222"
+	DefaultNATSURL = "nats://192.168.1.2:4222"
 )
 
 var DefaultSensors = []string{

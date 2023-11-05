@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	DefaultNATSURL       = "nats://192.168.1.129:4222,nats://192.168.1.130:4222,nats://192.168.1.131:4222"
+	DefaultNATSURL       = "nats://192.168.1.2:4222"
 	DefaultPrometheusURL = "http://localhost:9090/api/v1/write"
 )
 
