@@ -1,0 +1,32 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - router.willful.be
+  resources:
+  - portforwards
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - router.willful.be
+  resources:
+  - portforwards/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - router.willful.be
+  resources:
+  - portforwards/status
+  verbs:
+  - get
+  - patch
+  - update

@@ -1,0 +1,4 @@
+## Append samples of your project ##
+resources:
+- router_v1_portforward.yaml
+#+kubebuilder:scaffold:manifestskustomizesamples
