@@ -1,0 +1,25 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana-ingress
+  namespace: kube-prometheus
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: grafana.k3s.willful.be
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service: 
+            name: kube-prometheus-stack-grafana
+            port:
+              number: 3000
+  tls:
+  - hosts:
+    - grafana.k3s.willful.be
+    secretName: grafana-willful-be-tls

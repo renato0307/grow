@@ -57,6 +57,25 @@ export KUBECONFIG=~/.kube/config_k3spi
 kubectl get nodes
 ```
 
+## Install metallb
+
+```
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.12/config/manifests/metallb-native.yaml
+```
+
+## Install certificate manager
+
+```
+helm repo add jetstack https://charts.jetstack.io
+helm repo update
+helm install \
+  cert-manager jetstack/cert-manager \
+  --namespace cert-manager \
+  --create-namespace \
+  --version v1.13.2 \
+  --set installCRDs=true
+```
+
 ## Install NATS
 
 ```
@@ -72,6 +91,7 @@ Install
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
 helm upgrade --install kube-prometheus-stack prometheus-community/kube-prometheus-stack -n kube-prometheus --create-namespace --values prom-values.yaml
+k apply -f prom-ingress.yaml
 ```
 
 Password to access to Grafana (user is `admin`)
