@@ -2,26 +2,36 @@ package client
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"strings"
 )
 
 type VirtualServer struct {
-	ServerName        string
-	ExternalPortStart string
 	ExternalPortEnd   string
-	Protocol          string
-	InternalPortStart string
+	ExternalPortStart string
 	InternalPortEnd   string
-	ServerIPAddress   string
-	WANInterface      string
+	InternalPortStart string
 	Origin            string
+	Protocol          string
+	ServerIPAddress   string
+	ServerName        string
+	WANInterface      string
+}
+
+type VirtualServerCreateInput VirtualServer
+
+type VirtualServerDeleteInput struct {
+	ExternalPortEnd   string
+	ExternalPortStart string
+	InternalPortEnd   string
+	InternalPortStart string
+	Protocol          string
+	ServerIPAddress   string
 }
 
 type VirtualServers interface {
-	Create(VirtualServer) error
-	Delete(name string) error
+	Create(VirtualServerCreateInput) error
+	Delete(VirtualServerDeleteInput) error
 	List() ([]VirtualServer, error)
 }
 
@@ -29,12 +39,69 @@ type virtualServers struct {
 	client Client
 }
 
-func (vs virtualServers) Create(VirtualServer) error {
+func (vs virtualServers) Create(server VirtualServerCreateInput) error {
+	sb := strings.Builder{}
+	sb.WriteString("nat/virtual-servers/create")
+	sb.WriteString(fmt.Sprintf(" --ext-port-start=%s", server.ExternalPortStart))
+	sb.WriteString(fmt.Sprintf(" --int-port-start=%s", server.InternalPortStart))
+	sb.WriteString(fmt.Sprintf(" --protocol=%s", server.Protocol))
+	sb.WriteString(fmt.Sprintf(" --server-ip=%s", server.ServerIPAddress))
+	sb.WriteString(fmt.Sprintf(" --server-name=%s", server.ServerName))
+	sb.WriteString(fmt.Sprintf(" --wan-intf=%s", server.WANInterface))
+	if server.ExternalPortEnd != "" {
+		sb.WriteString(fmt.Sprintf(" --ext-port-end=%s", server.ExternalPortEnd))
+	}
+	if server.InternalPortEnd != "" {
+		sb.WriteString(fmt.Sprintf(" --int-port-end=%s", server.InternalPortEnd))
+	}
+
+	err := vs.client.WriteTelnet(sb.String())
+	if err != nil {
+		return fmt.Errorf("failed to create virtual server: %w", err)
+	}
+
+	promptFound, _, err := vs.client.WaitForPrompt(vs.client.options.CommandsPrompt)
+	if err != nil {
+		return fmt.Errorf("failed to find commands prompt: %w", err)
+	}
+	if !promptFound {
+		return fmt.Errorf("failed to find commands prompt")
+	}
+
 	return nil
 }
 
-func (vs virtualServers) Delete(name string) error {
-	return errors.New("not implemented")
+func (vs virtualServers) Delete(server VirtualServerDeleteInput) error {
+	sb := strings.Builder{}
+	sb.WriteString("nat/virtual-servers/remove")
+	sb.WriteString(fmt.Sprintf(" --ext-port-start=%s", server.ExternalPortStart))
+	sb.WriteString(fmt.Sprintf(" --int-port-start=%s", server.InternalPortStart))
+	sb.WriteString(fmt.Sprintf(" --protocol=%s", server.Protocol))
+	sb.WriteString(fmt.Sprintf(" --server-ip=%s", server.ServerIPAddress))
+	if server.ExternalPortEnd != "" {
+		sb.WriteString(fmt.Sprintf(" --ext-port-end=%s", server.ExternalPortEnd))
+	}
+	if server.InternalPortEnd != "" {
+		sb.WriteString(fmt.Sprintf(" --int-port-end=%s", server.InternalPortEnd))
+	}
+
+	err := vs.client.WriteTelnet(sb.String())
+	if err != nil {
+		return fmt.Errorf("failed to delete virtual server: %w", err)
+	}
+
+	promptFound, data, err := vs.client.WaitForPrompt(vs.client.options.CommandsPrompt)
+	if err != nil {
+		return fmt.Errorf("failed to find commands prompt: %w", err)
+	}
+	if !promptFound {
+		return fmt.Errorf("failed to find commands prompt")
+	}
+	if strings.Contains(string(data), "Failed to delete Entry") {
+		return fmt.Errorf("failed to delete virtual server: %s", data)
+	}
+
+	return nil
 }
 
 func (vs virtualServers) List() ([]VirtualServer, error) {

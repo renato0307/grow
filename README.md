@@ -15,9 +15,11 @@ Processes the information and displays it with Prometheus/Grafana.
 ## Structure
 
 * `charts` - helm charts from this repository (more info [here](https://renato0307.github.io/grow/))
+* `go-fibergateway-gr241ag` - Go client for the Altice Fiber Gateway GR241AG
+* `ingestion-service` - service to ingest readings from NATS jetstream
 * `k8s` - setups a k8s cluster to run NATS and Prometheus
 * `monitor-ghm` - monitor running on raspberry pi with Pimonori Grow HAT Mini (GHM)
-* `ingestion-service` - service to ingest readings from NATS jetstream
+* `router-config-controller` - K8s controller to automatically expose cluster ports in the Altice Fiber Gateway
 
 ## Useful NATS commands
 
