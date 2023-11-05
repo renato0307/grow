@@ -2,6 +2,7 @@ package client
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net"
 	"strings"
@@ -9,6 +10,8 @@ import (
 
 	"github.com/Cristofori/kmud/telnet"
 )
+
+var ErrorNotFound = errors.New("resource not found")
 
 type Client struct {
 	host    string

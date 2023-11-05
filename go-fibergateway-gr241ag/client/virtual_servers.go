@@ -20,7 +20,7 @@ type VirtualServer struct {
 
 type VirtualServerCreateInput VirtualServer
 
-type VirtualServerDeleteInput struct {
+type VirtualServerReadInput struct {
 	ExternalPortEnd   string
 	ExternalPortStart string
 	InternalPortEnd   string
@@ -29,9 +29,12 @@ type VirtualServerDeleteInput struct {
 	ServerIPAddress   string
 }
 
+type VirtualServerDeleteInput VirtualServerReadInput
+
 type VirtualServers interface {
 	Create(VirtualServerCreateInput) error
 	Delete(VirtualServerDeleteInput) error
+	Read(VirtualServerReadInput) (VirtualServer, error)
 	List() ([]VirtualServer, error)
 }
 
@@ -169,4 +172,31 @@ func (vs virtualServers) List() ([]VirtualServer, error) {
 	}
 
 	return servers, nil
+}
+
+func (vs virtualServers) Read(server VirtualServerReadInput) (VirtualServer, error) {
+	servers, err := vs.List()
+	if err != nil {
+		return VirtualServer{}, err
+	}
+
+	if server.ExternalPortEnd == "" {
+		server.ExternalPortEnd = server.ExternalPortStart
+	}
+	if server.InternalPortEnd == "" {
+		server.InternalPortEnd = server.InternalPortStart
+	}
+
+	for _, s := range servers {
+		if server.ExternalPortStart == s.ExternalPortStart &&
+			server.InternalPortStart == s.InternalPortStart &&
+			server.Protocol == s.Protocol &&
+			server.ServerIPAddress == s.ServerIPAddress &&
+			server.ExternalPortEnd == s.ExternalPortEnd &&
+			server.InternalPortEnd == s.InternalPortEnd {
+			return s, nil
+		}
+	}
+
+	return VirtualServer{}, ErrorNotFound
 }

@@ -62,4 +62,17 @@ func main() {
 		fmt.Println("virtual server creation failed:", err.Error())
 		os.Exit(1)
 	}
+
+	s, err := c.VirtualServers.Read(client.VirtualServerReadInput{
+		ExternalPortStart: "4222",
+		InternalPortStart: "4222",
+		Protocol:          "TCP",
+		ServerIPAddress:   "192.168.1.2",
+	})
+	if err != nil {
+		fmt.Println("virtual server read failed:", err.Error())
+		os.Exit(1)
+	}
+
+	fmt.Println("the created virtual server is", s)
 }
