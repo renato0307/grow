@@ -79,25 +79,25 @@ func Connect(host string, options ConnectOptions) (Client, error) {
 	c.telnet = telnet.NewTelnet(conn)
 
 	// handle authentication
-	if options.Username != "" {
-		promptFound, _, err := c.WaitForPrompt(options.LoginPrompt)
+	if options.Username != "" && options.Password != "" {
+		promptFound, data, err := c.WaitForPrompt(options.LoginPrompt)
 		if err != nil {
-			return c, fmt.Errorf("failed to find login prompt: %w", err)
+			return c, fmt.Errorf("failed to find login prompt: %w - telnet output is %s", err, string(data))
 		}
 		if !promptFound {
-			return c, fmt.Errorf("failed to find login prompt")
+			return c, fmt.Errorf("failed to find login prompt - telnet output is %s", string(data))
 		}
 		err = c.WriteTelnet(options.Username)
 		if err != nil {
 			return c, fmt.Errorf("login input failed: %w", err)
 		}
 
-		promptFound, _, err = c.WaitForPrompt(options.PasswordPrompt)
+		promptFound, data, err = c.WaitForPrompt(options.PasswordPrompt)
 		if err != nil {
-			return c, fmt.Errorf("failed to find password prompt: %w", err)
+			return c, fmt.Errorf("failed to find password prompt: %w - telnet output is %s", err, string(data))
 		}
 		if !promptFound {
-			return c, fmt.Errorf("failed to find password prompt")
+			return c, fmt.Errorf("failed to find password prompt - telnet output is %s", string(data))
 		}
 		err = c.WriteTelnet(options.Password)
 		if err != nil {
@@ -106,12 +106,12 @@ func Connect(host string, options ConnectOptions) (Client, error) {
 	}
 
 	// wait for commands prompt
-	promptFound, _, err := c.WaitForPrompt(options.CommandsPrompt)
+	promptFound, data, err := c.WaitForPrompt(options.CommandsPrompt)
 	if err != nil {
-		return c, fmt.Errorf("failed to find commands prompt: %w", err)
+		return c, fmt.Errorf("failed to find commands prompt: %w - telnet output is %s", err, string(data))
 	}
 	if !promptFound {
-		return c, fmt.Errorf("failed to find commands prompt")
+		return c, fmt.Errorf("failed to find commands prompt - telnet output is %s", string(data))
 	}
 
 	// init clients
@@ -139,9 +139,10 @@ func (c Client) WaitForPrompt(prompt string) (bool, []byte, error) {
 	tries := 5
 	for {
 		data := make([]byte, 1024)
+		c.conn.SetReadDeadline(time.Now().Add(5 * time.Second))
 		n, err := c.telnet.Read(data)
 		if err != nil {
-			return false, nil, fmt.Errorf("read failed: %w", err)
+			return false, b.Bytes(), fmt.Errorf("failed waiting for prompt: %w", err)
 		}
 		b.Write(data[:n])
 

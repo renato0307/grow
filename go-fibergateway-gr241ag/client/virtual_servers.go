@@ -63,12 +63,13 @@ func (vs virtualServers) Create(server VirtualServerCreateInput) error {
 		return fmt.Errorf("failed to create virtual server: %w", err)
 	}
 
-	promptFound, _, err := vs.client.WaitForPrompt(vs.client.options.CommandsPrompt)
+	data, err := vs.waitForCommandsPrompt()
 	if err != nil {
-		return fmt.Errorf("failed to find commands prompt: %w", err)
+		return err
 	}
-	if !promptFound {
-		return fmt.Errorf("failed to find commands prompt")
+
+	if strings.Contains(string(data), "Failed") {
+		return fmt.Errorf("failed to create virtual server: %s", data)
 	}
 
 	return nil
@@ -93,13 +94,11 @@ func (vs virtualServers) Delete(server VirtualServerDeleteInput) error {
 		return fmt.Errorf("failed to delete virtual server: %w", err)
 	}
 
-	promptFound, data, err := vs.client.WaitForPrompt(vs.client.options.CommandsPrompt)
+	data, err := vs.waitForCommandsPrompt()
 	if err != nil {
-		return fmt.Errorf("failed to find commands prompt: %w", err)
+		return err
 	}
-	if !promptFound {
-		return fmt.Errorf("failed to find commands prompt")
-	}
+
 	if strings.Contains(string(data), "Failed to delete Entry") {
 		return fmt.Errorf("failed to delete virtual server: %s", data)
 	}
@@ -113,12 +112,9 @@ func (vs virtualServers) List() ([]VirtualServer, error) {
 		return nil, fmt.Errorf("failed to list virtual servers: %w", err)
 	}
 
-	promptFound, data, err := vs.client.WaitForPrompt(vs.client.options.CommandsPrompt)
+	data, err := vs.waitForCommandsPrompt()
 	if err != nil {
-		return nil, fmt.Errorf("failed to find commands prompt: %w", err)
-	}
-	if !promptFound {
-		return nil, fmt.Errorf("failed to find commands prompt")
+		return nil, err
 	}
 
 	scanner := bufio.NewScanner(strings.NewReader(string(data)))
@@ -199,4 +195,15 @@ func (vs virtualServers) Read(server VirtualServerReadInput) (VirtualServer, err
 	}
 
 	return VirtualServer{}, ErrorNotFound
+}
+
+func (vs virtualServers) waitForCommandsPrompt() ([]byte, error) {
+	promptFound, data, err := vs.client.WaitForPrompt(vs.client.options.CommandsPrompt)
+	if err != nil {
+		return data, fmt.Errorf("failed to find commands prompt: %w - telnet output is %s", err, string(data))
+	}
+	if !promptFound {
+		return data, fmt.Errorf("failed to find commands prompt - telnet output is %s", string(data))
+	}
+	return data, nil
 }

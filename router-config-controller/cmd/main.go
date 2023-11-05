@@ -53,6 +53,11 @@ func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
 	var probeAddr string
+	var routerCredentialsSecretName string
+	var routerUsername string
+	var routerPassword string
+	var routerIPAddress string
+
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
@@ -61,6 +66,10 @@ func main() {
 	opts := zap.Options{
 		Development: true,
 	}
+	flag.StringVar(&routerCredentialsSecretName, "router-credentials-secret-ref", "", "the secret containing the credentials to access the router")
+	flag.StringVar(&routerUsername, "router-username", os.Getenv("ROUTER_USERNAME"), "the username to access the router")
+	flag.StringVar(&routerPassword, "router-password", os.Getenv("ROUTER_PASSWORD"), "the password to access the router")
+	flag.StringVar(&routerIPAddress, "router-address", os.Getenv("ROUTER_ADDRESS"), "the IP address to access the router")
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
 
@@ -90,8 +99,11 @@ func main() {
 	}
 
 	if err = (&controller.PortForwardReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:          mgr.GetClient(),
+		Scheme:          mgr.GetScheme(),
+		RouterIPAddress: routerIPAddress,
+		RouterUsername:  routerUsername, // TODO: read credentials from secret ref
+		RouterPassword:  routerPassword,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "PortForward")
 		os.Exit(1)

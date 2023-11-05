@@ -17,6 +17,7 @@ limitations under the License.
 package v1
 
 import (
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -74,12 +75,42 @@ type PortForwardForServicePortSpec struct {
 
 // PortForwardStatus defines the observed state of PortForward
 type PortForwardStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
+}
+
+func (t *PortForward) GetConditions() *[]metav1.Condition {
+	return &t.Status.Conditions
+}
+
+func (t *PortForward) SetConditions(c ...metav1.Condition) {
+	t.Status.SetConditions(c...)
+}
+
+func (t *PortForward) GetCondition(ct string) *metav1.Condition {
+	return t.Status.GetCondition(ct)
+}
+
+// GetCondition returns the condition for the given ConditionType if exists,
+// otherwise returns nil
+func (s *PortForwardStatus) GetCondition(ct string) *metav1.Condition {
+	return meta.FindStatusCondition(s.Conditions, ct)
+}
+
+// SetConditions sets the supplied conditions, replacing any existing conditions
+// of the same type. This is a no-op if all supplied conditions are identical,
+// ignoring the last transition time, to those already set.
+// obsGen should be set to the object current generation to inform other controllers
+// which status they are observing.
+func (s *PortForwardStatus) SetConditions(c ...metav1.Condition) {
+	for _, new := range c {
+		meta.SetStatusCondition(&s.Conditions, new)
+	}
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+//+kubebuilder:printcolumn:name="Ready",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
+//+kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].message"
 
 // PortForward is the Schema for the portforwards API
 type PortForward struct {

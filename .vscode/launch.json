@@ -22,6 +22,17 @@
             "mode": "auto",
             "program": "${workspaceFolder}/go-fibergateway-gr241ag",
             "args": [],
+        },
+        {
+            "name": "router-controller",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/router-config-controller/cmd/main.go",
+            "args": [
+                "--router-address=192.168.1.254",
+                "--router-username=meo"
+            ],
         }
     ]
 }

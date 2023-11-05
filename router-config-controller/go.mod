@@ -1,16 +1,19 @@
 module github.com/renato0307/grow/router-config-controller
 
-go 1.20
+go 1.21
+
+toolchain go1.21.1
 
 require (
 	github.com/onsi/ginkgo/v2 v2.11.0
 	github.com/onsi/gomega v1.27.10
+	github.com/renato0307/grow/go-fibergateway-gr241ag v0.0.0-20231105202653-424f6d378677
 	k8s.io/apimachinery v0.28.3
 	k8s.io/client-go v0.28.3
 	sigs.k8s.io/controller-runtime v0.16.3
 )
 
-require github.com/reiver/go-oi v1.0.0 // indirect
+require github.com/Cristofori/kmud v0.0.0-20170214191741-9c029b6e62e2 // indirect
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -46,7 +49,6 @@ require (
 	github.com/prometheus/client_model v0.4.0 // indirect
 	github.com/prometheus/common v0.44.0 // indirect
 	github.com/prometheus/procfs v0.10.1 // indirect
-	github.com/reiver/go-telnet v0.0.0-20180421082511-9ff0b2ab096e
 	github.com/spf13/pflag v1.0.5 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.25.0 // indirect
