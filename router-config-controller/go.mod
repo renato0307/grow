@@ -7,7 +7,7 @@ toolchain go1.21.1
 require (
 	github.com/onsi/ginkgo/v2 v2.11.0
 	github.com/onsi/gomega v1.27.10
-	github.com/renato0307/grow/go-fibergateway-gr241ag v0.0.0-20231105202653-424f6d378677
+	github.com/renato0307/grow/go-fibergateway-gr241ag v0.0.0-20231105224516-9f27051b69c0
 	k8s.io/apimachinery v0.28.3
 	k8s.io/client-go v0.28.3
 	sigs.k8s.io/controller-runtime v0.16.3

@@ -152,6 +152,7 @@ func (r *PortForwardReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		}
 	}
 
+	ctrlLog.Info("port forward is ready - updating conditions")
 	pf.SetConditions(
 		metav1.Condition{
 			Type:               "Ready",
