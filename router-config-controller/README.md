@@ -1,8 +1,7 @@
 # router-config-controller
-// TODO(user): Add simple overview of use/purpose
+Controller to manage home router configurations based on the external IPs of services.
 
-## Description
-// TODO(user): An in-depth paragraph about your project and overview of use
+Use mainly to open ports and configure port forwards.
 
 ## Getting Started
 
