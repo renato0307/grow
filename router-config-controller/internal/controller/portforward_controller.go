@@ -26,11 +26,18 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
+	"github.com/go-logr/logr"
 	routercli "github.com/renato0307/grow/go-fibergateway-gr241ag/client"
 
 	routerv1 "github.com/renato0307/grow/router-config-controller/api/v1"
+)
+
+const (
+	finalizer = "finalizer.porforward.router.willful.be"
 )
 
 // PortForwardReconciler reconciles a PortForward object
@@ -59,6 +66,41 @@ type PortForwardReconciler struct {
 func (r *PortForwardReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	ctrlLog := log.FromContext(ctx)
 
+	pf := &routerv1.PortForward{}
+	err := r.Client.Get(ctx, req.NamespacedName, pf)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			ctrlLog.V(1).Info("resource not found")
+		} else {
+			ctrlLog.Error(err, "error getting resource")
+		}
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	if !pf.ObjectMeta.DeletionTimestamp.IsZero() {
+		return r.handleDelete(ctx, ctrlLog, pf)
+	}
+
+	result, err := r.handleCreateOrUpdate(ctx, ctrlLog, pf)
+	if err != nil {
+		return result, err
+	}
+
+	return ctrl.Result{RequeueAfter: 1 * time.Hour}, nil
+}
+
+func (r *PortForwardReconciler) handleCreateOrUpdate(ctx context.Context, ctrlLog logr.Logger, pf *routerv1.PortForward) (reconcile.Result, error) {
+	if !controllerutil.ContainsFinalizer(pf, finalizer) {
+		ctrlLog.V(1).Info("adding resource finalizer")
+		controllerutil.AddFinalizer(pf, finalizer)
+		err := r.Client.Update(ctx, pf)
+		if err != nil {
+			ctrlLog.Error(err, "error updating port forward to add the finalizer")
+			return ctrl.Result{}, fmt.Errorf("error updating port forward to add the finalizer: %w", err)
+		}
+		return ctrl.Result{}, nil
+	}
+
 	routerClient, err := routercli.Connect(r.RouterIPAddress, routercli.ConnectOptions{
 		Username: r.RouterUsername,
 		Password: r.RouterPassword,
@@ -68,17 +110,6 @@ func (r *PortForwardReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, fmt.Errorf("could not connect to router: %w", err)
 	}
 	defer routerClient.Close()
-
-	pf := &routerv1.PortForward{}
-	err = r.Client.Get(ctx, req.NamespacedName, pf)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			ctrlLog.V(1).Info("resource not found")
-		} else {
-			ctrlLog.Error(err, "error getting resource")
-		}
-		return ctrl.Result{}, client.IgnoreNotFound(err)
-	}
 
 	virtualServer, err := routerClient.VirtualServers.Read(routercli.VirtualServerReadInput{Name: buildName(pf)})
 	exists := true
@@ -93,7 +124,7 @@ func (r *PortForwardReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 
 	if !exists {
-		// creates a port forward in the router
+
 		ctrlLog.Info("creating port forward in the router")
 		err = routerClient.VirtualServers.Create(routercli.VirtualServerCreateInput{
 			ExternalPortStart: fmt.Sprintf("%d", pf.Spec.Rule.ExternalPortStart),
@@ -119,7 +150,6 @@ func (r *PortForwardReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 		ctrlLog.Info("updating port forward in the router")
 
-		// update, requires delete the existing portforward and creating a new one
 		ctrlLog.Info("deleting existing port forward in the router (part of update)")
 		err = routerClient.VirtualServers.Delete(routercli.VirtualServerDeleteInput{Name: buildName(pf)})
 		if err != nil {
@@ -160,8 +190,57 @@ func (r *PortForwardReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		ctrlLog.Error(err, "error updating port forward status")
 		return ctrl.Result{}, fmt.Errorf("error updating port forward status: %w", err)
 	}
+	return reconcile.Result{}, nil
+}
 
-	return ctrl.Result{RequeueAfter: 1 * time.Hour}, nil
+func (r *PortForwardReconciler) handleDelete(ctx context.Context, ctrlLog logr.Logger, pf *routerv1.PortForward) (reconcile.Result, error) {
+	ctrlLog.V(1).Info("resource is being deleted")
+
+	if !controllerutil.ContainsFinalizer(pf, finalizer) {
+		return ctrl.Result{}, nil
+	}
+
+	routerClient, err := routercli.Connect(r.RouterIPAddress, routercli.ConnectOptions{
+		Username: r.RouterUsername,
+		Password: r.RouterPassword,
+	})
+	if err != nil {
+		ctrlLog.Error(err, "could not connect to router")
+		return ctrl.Result{}, fmt.Errorf("could not connect to router: %w", err)
+	}
+	defer routerClient.Close()
+
+	_, err = routerClient.VirtualServers.Read(routercli.VirtualServerReadInput{Name: buildName(pf)})
+	exists := true
+	if err != nil {
+		if err == routercli.ErrorNotFound {
+			ctrlLog.Info("port forward not found on router")
+			exists = false
+		} else {
+			ctrlLog.Error(err, "error reading port port forward from router")
+			return ctrl.Result{}, fmt.Errorf("error reading port port forward from router: %w", err)
+		}
+	}
+
+	if exists {
+		ctrlLog.Info("deleting existing port forward in the router")
+		err = routerClient.VirtualServers.Delete(routercli.VirtualServerDeleteInput{Name: buildName(pf)})
+		if err != nil {
+			ctrlLog.Error(err, "error deleting port forward in router")
+			return ctrl.Result{}, fmt.Errorf("error deleting port forward in router: %w", err)
+		}
+	}
+
+	ctrlLog.V(1).Info("removing resource finalizer")
+	controllerutil.RemoveFinalizer(pf, finalizer)
+
+	err = r.Client.Update(ctx, pf)
+	if err != nil {
+		ctrlLog.Error(err, "error updating port forward while deleting")
+		return ctrl.Result{}, fmt.Errorf("error updating port forward while deleting: %w", err)
+	}
+
+	return ctrl.Result{}, nil
 }
 
 func buildName(pf *routerv1.PortForward) string {
