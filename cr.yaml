@@ -1,1 +1,2 @@
 release-name-template: "helmchart-{{ .Name }}-{{ .Version }}"
+skip-existing: true

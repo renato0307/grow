@@ -111,3 +111,10 @@ helm show values prometheus-community/kube-prometheus-stack
 ```
 helm upgrade --install -n ingestion-service --create-namespace ingestion-service grow/ingestion-service --version 0.1.1
 ```
+
+## Install the router config controller
+
+```
+./router-config-secret.sh
+helm upgrade --install -n router-config --create-namespace router-config-controller ./charts/router-config-controller --set 'controllerManager.manager.image.repository=ghcr.io/renato0307/grow-router-config-controller' --set 'controllerManager.manager.image.tag=v0.2.1'
+```
