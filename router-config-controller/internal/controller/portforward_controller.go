@@ -80,19 +80,11 @@ func (r *PortForwardReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	vs, err := routerClient.VirtualServers.Read(routercli.VirtualServerReadInput{
-		ExternalPortStart: fmt.Sprintf("%d", pf.Spec.Rule.ExternalPortStart),
-		ExternalPortEnd:   fmt.Sprintf("%d", pf.Spec.Rule.ExternalPortEnd),
-		InternalPortStart: fmt.Sprintf("%d", pf.Spec.Rule.InternalPortStart),
-		InternalPortEnd:   fmt.Sprintf("%d", pf.Spec.Rule.InternalPortEnd),
-		Protocol:          pf.Spec.Rule.Protocol,
-		ServerIPAddress:   pf.Spec.Rule.ServerIP,
-	})
-
+	virtualServer, err := routerClient.VirtualServers.Read(routercli.VirtualServerReadInput{Name: buildName(pf)})
 	exists := true
 	if err != nil {
 		if err == routercli.ErrorNotFound {
-			ctrlLog.Info("port forward not found")
+			ctrlLog.Info("port forward not found on router")
 			exists = false
 		} else {
 			ctrlLog.Error(err, "error reading port port forward from router")
@@ -110,26 +102,26 @@ func (r *PortForwardReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			InternalPortEnd:   fmt.Sprintf("%d", pf.Spec.Rule.InternalPortEnd),
 			Protocol:          pf.Spec.Rule.Protocol,
 			ServerIPAddress:   pf.Spec.Rule.ServerIP,
-			ServerName:        pf.Spec.Rule.ServiceName,
+			ServerName:        buildName(pf),
 			WANInterface:      pf.Spec.Rule.Interface,
 		})
 		if err != nil {
 			ctrlLog.Error(err, "error creating port port forward in router")
 			return ctrl.Result{}, fmt.Errorf("error creating port forward in router: %w", err)
 		}
-	} else if vs.ServerName != pf.Spec.Rule.ServiceName || vs.WANInterface != pf.Spec.Rule.Interface {
+	} else if fmt.Sprintf("%d", pf.Spec.Rule.ExternalPortEnd) != virtualServer.ExternalPortEnd ||
+		fmt.Sprintf("%d", pf.Spec.Rule.ExternalPortStart) != virtualServer.ExternalPortStart ||
+		fmt.Sprintf("%d", pf.Spec.Rule.InternalPortStart) != virtualServer.InternalPortStart ||
+		fmt.Sprintf("%d", pf.Spec.Rule.InternalPortEnd) != virtualServer.InternalPortEnd ||
+		pf.Spec.Rule.Interface != virtualServer.WANInterface ||
+		pf.Spec.Rule.Protocol != virtualServer.Protocol ||
+		pf.Spec.Rule.ServerIP != virtualServer.ServerIPAddress {
+
 		ctrlLog.Info("updating port forward in the router")
 
 		// update, requires delete the existing portforward and creating a new one
 		ctrlLog.Info("deleting existing port forward in the router (part of update)")
-		err = routerClient.VirtualServers.Delete(routercli.VirtualServerDeleteInput{
-			ExternalPortStart: fmt.Sprintf("%d", pf.Spec.Rule.ExternalPortStart),
-			ExternalPortEnd:   fmt.Sprintf("%d", pf.Spec.Rule.ExternalPortEnd),
-			InternalPortStart: fmt.Sprintf("%d", pf.Spec.Rule.InternalPortStart),
-			InternalPortEnd:   fmt.Sprintf("%d", pf.Spec.Rule.InternalPortEnd),
-			Protocol:          pf.Spec.Rule.Protocol,
-			ServerIPAddress:   pf.Spec.Rule.ServerIP,
-		})
+		err = routerClient.VirtualServers.Delete(routercli.VirtualServerDeleteInput{Name: buildName(pf)})
 		if err != nil {
 			ctrlLog.Error(err, "error deleting port forward in router for update")
 			return ctrl.Result{}, fmt.Errorf("error deleting port forward in router for update: %w", err)
@@ -143,7 +135,7 @@ func (r *PortForwardReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			InternalPortEnd:   fmt.Sprintf("%d", pf.Spec.Rule.InternalPortEnd),
 			Protocol:          pf.Spec.Rule.Protocol,
 			ServerIPAddress:   pf.Spec.Rule.ServerIP,
-			ServerName:        pf.Spec.Rule.ServiceName,
+			ServerName:        buildName(pf),
 			WANInterface:      pf.Spec.Rule.Interface,
 		})
 		if err != nil {
@@ -170,6 +162,11 @@ func (r *PortForwardReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 
 	return ctrl.Result{RequeueAfter: 1 * time.Hour}, nil
+}
+
+func buildName(pf *routerv1.PortForward) string {
+	name := fmt.Sprintf("%s-%s", pf.Namespace, pf.Name)
+	return name
 }
 
 // SetupWithManager sets up the controller with the Manager.

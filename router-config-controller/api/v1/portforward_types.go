@@ -55,9 +55,6 @@ type PortForwardRuleSpec struct {
 
 	// Server IP address
 	ServerIP string `json:"serverIP,omitempty"`
-
-	// Service name
-	ServiceName string `json:"serviceName,omitempty"`
 }
 
 type PortForwardForSpec struct {
