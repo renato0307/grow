@@ -1,0 +1,59 @@
+name: Release Router Config Controller
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'router-config-controller/**/*'
+jobs:
+  release:
+    permissions:
+      contents: write
+      packages: write
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0
+        with:
+          versionSpec: '5.x'
+
+      - name: Determine Version
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v0
+        with:
+          useConfigFile: true
+          targetPath: router-config-controller
+          configFilePath: router-config-controller/GitVersion.yml
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: 'router-config-controller-${{ steps.gitversion.outputs.semVer }}'
+          name: 'router-config-controller-${{ steps.gitversion.outputs.semVer }}'
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{github.actor}}
+          password: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Build Docker Image
+        working-directory: ./router-config-controller
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          make docker-build . IMG=ghcr.io/renato0307/grow-router-config-controller:v${{ steps.gitversion.outputs.semVer }}
+          make docker-push IMG=ghcr.io/renato0307/grow-router-config-controller:v${{ steps.gitversion.outputs.semVer }}
