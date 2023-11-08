@@ -11,6 +11,17 @@ entries:
     urls:
     - https://github.com/renato0307/grow/releases/download/helmchart-ingestion-service-0.1.2/ingestion-service-0.1.2.tgz
     version: 0.1.2
+  router-config-controller:
+  - apiVersion: v2
+    appVersion: 0.1.0
+    created: "2023-11-08T21:04:48.485483722Z"
+    description: A Helm chart for Kubernetes
+    digest: 064c0eacf74894d3b4af93b4aceb301afa548fdada1cfd4fc0c7eecb881328de
+    name: router-config-controller
+    type: application
+    urls:
+    - https://github.com/renato0307/grow/releases/download/helmchart-router-config-controller-0.1.0/router-config-controller-0.1.0.tgz
+    version: 0.1.0
   service-ingestion:
   - apiVersion: v2
     appVersion: v0.3.0
@@ -22,4 +33,4 @@ entries:
     urls:
     - https://github.com/renato0307/grow/releases/download/helmchart-service-ingestion-0.1.1/service-ingestion-0.1.1.tgz
     version: 0.1.1
-generated: "2023-11-04T13:04:08.926843918Z"
+generated: "2023-11-08T21:04:48.48549367Z"
