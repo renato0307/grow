@@ -16,7 +16,7 @@
             ],
         },
         {
-            "name": "telnet",
+            "name": "go-fibergateway-gr241ag",
             "type": "go",
             "request": "launch",
             "mode": "auto",

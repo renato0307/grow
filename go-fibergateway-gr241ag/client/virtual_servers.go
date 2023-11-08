@@ -21,12 +21,7 @@ type VirtualServer struct {
 type VirtualServerCreateInput VirtualServer
 
 type VirtualServerReadInput struct {
-	ExternalPortEnd   string
-	ExternalPortStart string
-	InternalPortEnd   string
-	InternalPortStart string
-	Protocol          string
-	ServerIPAddress   string
+	Name string
 }
 
 type VirtualServerDeleteInput VirtualServerReadInput
@@ -68,15 +63,23 @@ func (vs virtualServers) Create(server VirtualServerCreateInput) error {
 		return err
 	}
 
-	if strings.Contains(string(data), "Failed") {
+	if errorFoundOnCommandResponse(data) {
 		return fmt.Errorf("failed to create virtual server: %s", data)
 	}
 
 	return nil
 }
 
-func (vs virtualServers) Delete(server VirtualServerDeleteInput) error {
+func (vs virtualServers) Delete(delServer VirtualServerDeleteInput) error {
 	sb := strings.Builder{}
+
+	server, err := vs.Read(VirtualServerReadInput(delServer))
+	if err != nil {
+		if err == ErrorNotFound {
+			return nil
+		}
+		return err
+	}
 	sb.WriteString("nat/virtual-servers/remove")
 	sb.WriteString(fmt.Sprintf(" --ext-port-start=%s", server.ExternalPortStart))
 	sb.WriteString(fmt.Sprintf(" --int-port-start=%s", server.InternalPortStart))
@@ -89,7 +92,7 @@ func (vs virtualServers) Delete(server VirtualServerDeleteInput) error {
 		sb.WriteString(fmt.Sprintf(" --int-port-end=%s", server.InternalPortEnd))
 	}
 
-	err := vs.client.WriteTelnet(sb.String())
+	err = vs.client.WriteTelnet(sb.String())
 	if err != nil {
 		return fmt.Errorf("failed to delete virtual server: %w", err)
 	}
@@ -98,8 +101,7 @@ func (vs virtualServers) Delete(server VirtualServerDeleteInput) error {
 	if err != nil {
 		return err
 	}
-
-	if strings.Contains(string(data), "Failed to delete Entry") {
+	if errorFoundOnCommandResponse(data) {
 		return fmt.Errorf("failed to delete virtual server: %s", data)
 	}
 
@@ -115,6 +117,9 @@ func (vs virtualServers) List() ([]VirtualServer, error) {
 	data, err := vs.waitForCommandsPrompt()
 	if err != nil {
 		return nil, err
+	}
+	if errorFoundOnCommandResponse(data) {
+		return nil, fmt.Errorf("failed to list virtual servers: %s", data)
 	}
 
 	scanner := bufio.NewScanner(strings.NewReader(string(data)))
@@ -176,20 +181,8 @@ func (vs virtualServers) Read(server VirtualServerReadInput) (VirtualServer, err
 		return VirtualServer{}, err
 	}
 
-	if server.ExternalPortEnd == "" {
-		server.ExternalPortEnd = server.ExternalPortStart
-	}
-	if server.InternalPortEnd == "" {
-		server.InternalPortEnd = server.InternalPortStart
-	}
-
 	for _, s := range servers {
-		if server.ExternalPortStart == s.ExternalPortStart &&
-			server.InternalPortStart == s.InternalPortStart &&
-			server.Protocol == s.Protocol &&
-			server.ServerIPAddress == s.ServerIPAddress &&
-			server.ExternalPortEnd == s.ExternalPortEnd &&
-			server.InternalPortEnd == s.InternalPortEnd {
+		if server.Name == s.ServerName {
 			return s, nil
 		}
 	}
@@ -206,4 +199,8 @@ func (vs virtualServers) waitForCommandsPrompt() ([]byte, error) {
 		return data, fmt.Errorf("failed to find commands prompt - telnet output is %s", string(data))
 	}
 	return data, nil
+}
+
+func errorFoundOnCommandResponse(data []byte) bool {
+	return strings.Contains(string(data), "ERROR") || strings.Contains(string(data), "Failed")
 }

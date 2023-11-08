@@ -33,46 +33,51 @@ func main() {
 		}
 	}
 
-	// delete example
 	if natsFound {
+		// delete example
 		fmt.Println("deleting virtual server")
-		err = c.VirtualServers.Delete(client.VirtualServerDeleteInput{
+		err = c.VirtualServers.Delete(client.VirtualServerDeleteInput{Name: "NATS"})
+		if err != nil {
+			fmt.Println("virtual server creation failed:", err.Error())
+			os.Exit(1)
+		}
+	} else {
+		// create example
+		fmt.Println("creating virtual server")
+		err = c.VirtualServers.Create(client.VirtualServerCreateInput{
 			ExternalPortStart: "4222",
 			InternalPortStart: "4222",
 			Protocol:          "TCP",
+			ServerName:        "NATS",
 			ServerIPAddress:   "192.168.1.2",
+			WANInterface:      "veip0.1",
+		})
+		if err != nil {
+			fmt.Println("virtual server creation failed:", err.Error())
+			os.Exit(1)
+		}
+		s, err := c.VirtualServers.Read(client.VirtualServerReadInput{
+			Name: "NATS",
+		})
+		if err != nil {
+			fmt.Println("virtual server read failed:", err.Error())
+			os.Exit(1)
+		}
+		fmt.Println("the created virtual server is", s)
+
+		// create example - this will generate an error
+		fmt.Println("creating virtual server")
+		err = c.VirtualServers.Create(client.VirtualServerCreateInput{
+			ExternalPortStart: "4222",
+			InternalPortStart: "4222",
+			Protocol:          "TCP",
+			ServerName:        "NATS",
+			ServerIPAddress:   "192.168.1.2",
+			WANInterface:      "veip0.1",
 		})
 		if err != nil {
 			fmt.Println("virtual server creation failed:", err.Error())
 			os.Exit(1)
 		}
 	}
-
-	// create example
-	fmt.Println("creating virtual server")
-	err = c.VirtualServers.Create(client.VirtualServerCreateInput{
-		ExternalPortStart: "4222",
-		InternalPortStart: "4222",
-		Protocol:          "TCP",
-		ServerName:        "NATS",
-		ServerIPAddress:   "192.168.1.2",
-		WANInterface:      "veip0.1",
-	})
-	if err != nil {
-		fmt.Println("virtual server creation failed:", err.Error())
-		os.Exit(1)
-	}
-
-	s, err := c.VirtualServers.Read(client.VirtualServerReadInput{
-		ExternalPortStart: "4222",
-		InternalPortStart: "4222",
-		Protocol:          "TCP",
-		ServerIPAddress:   "192.168.1.2",
-	})
-	if err != nil {
-		fmt.Println("virtual server read failed:", err.Error())
-		os.Exit(1)
-	}
-
-	fmt.Println("the created virtual server is", s)
 }
