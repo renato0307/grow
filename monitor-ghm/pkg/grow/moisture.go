@@ -22,16 +22,21 @@ type GrowHatMoistureReader struct {
 	reading         float64
 	timeLastReading time.Time
 
+	minMoisture float64
+	maxMoisture float64
+
 	chip *gpiod.Chip
 	line *gpiod.Line
 }
 
-func NewGrowHatMoistureReader(name string, offset int) (*GrowHatMoistureReader, error) {
+func NewGrowHatMoistureReader(name string, offset int, minMoisture, maxMoisture float64) (*GrowHatMoistureReader, error) {
 	slog.Debug("initializing reader", "name", name, "offset", offset)
 	r := &GrowHatMoistureReader{
 		name:            name,
 		offset:          offset,
 		timeLastReading: time.Now(),
+		minMoisture:     minMoisture,
+		maxMoisture:     maxMoisture,
 	}
 
 	chipName := "gpiochip0"
@@ -54,7 +59,7 @@ func NewGrowHatMoistureReader(name string, offset int) (*GrowHatMoistureReader, 
 }
 
 func (r *GrowHatMoistureReader) Read() float64 {
-	return r.reading
+	return (r.maxMoisture - r.reading) * 100 / (r.maxMoisture - r.minMoisture)
 }
 
 func (r *GrowHatMoistureReader) Close() error {

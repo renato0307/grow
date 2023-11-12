@@ -63,7 +63,7 @@ func main() {
 func setupReaders(plants []options.Sensors) []MoistureReader {
 	readers := make([]MoistureReader, len(plants))
 	for i := range plants {
-		r, err := grow.NewGrowHatMoistureReader(plants[i].Name, plants[i].Connector)
+		r, err := grow.NewGrowHatMoistureReader(plants[i].Name, plants[i].Connector, plants[i].MinMoisture, plants[i].MaxMoisture)
 		if err != nil {
 			slog.Error("could not init reader", "plant", plants[i].Name, "error", err)
 			os.Exit(1)
@@ -95,6 +95,7 @@ func readAndPublish(readers []MoistureReader, publishers []publish.Publisher, fr
 	for _, reader := range readers {
 		reading := reader.Read()
 		slog.Debug("reading", "name", reader.Name(), "value", reading)
+
 		for _, publisher := range publishers {
 			err := publisher(publish.Reading{
 				Timestamp: time.Now(),

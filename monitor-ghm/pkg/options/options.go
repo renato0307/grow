@@ -12,20 +12,25 @@ import (
 )
 
 const (
-	Console        = "console" // Console publisher
-	NATS           = "nats"    // NATS publisher
-	DefaultNATSURL = "nats://192.168.1.2:4222"
+	Console         = "console" // Console publisher
+	NATS            = "nats"    // NATS publisher
+	DefaultNATSURL  = "nats://192.168.1.2:4222"
+	SensorSeparator = "|"
+	MaxMoisture     = 6.5
+	MinMoisture     = 25.5
 )
 
 var DefaultSensors = []string{
-	fmt.Sprintf("%s,%d", "espadas", grow.Moisture1),
-	fmt.Sprintf("%s,%d", "abacateiro", grow.Moisture2),
-	fmt.Sprintf("%s,%d", "pilea", grow.Moisture3),
+	fmt.Sprintf("%s%s%d", "espadas", SensorSeparator, grow.Moisture1),
+	fmt.Sprintf("%s%s%d", "abacateiro", SensorSeparator, grow.Moisture2),
+	fmt.Sprintf("%s%s%d", "pilea", SensorSeparator, grow.Moisture3),
 }
 
 type Sensors struct {
-	Name      string
-	Connector int
+	Name        string
+	Connector   int
+	MaxMoisture float64
+	MinMoisture float64
 }
 
 type NATSConfig struct {
@@ -67,17 +72,34 @@ func Get() (Options, error) {
 	opt.LogLevel = levelVar
 
 	for _, s := range sensors {
-		sensorCfg := strings.Split(s, ",")
-		if len(sensorCfg) != 2 {
+		sensorCfg := strings.Split(s, SensorSeparator)
+		if len(sensorCfg) < 2 || len(sensorCfg) > 4 {
 			return opt, fmt.Errorf("invalid sensor value: %s", s)
 		}
 		connector, err := strconv.Atoi(sensorCfg[1])
 		if err != nil {
-			return opt, fmt.Errorf("invalid connector value: %s", s)
+			return opt, fmt.Errorf("invalid connector value: %s", sensorCfg[1])
+		}
+
+		minMoisture := MinMoisture
+		maxMoisture := MaxMoisture
+		if len(sensorCfg) >= 3 {
+			minMoisture, err = strconv.ParseFloat(sensorCfg[2], 64)
+			if err != nil {
+				return opt, fmt.Errorf("invalid mininum moisture value: %s", sensorCfg[2])
+			}
+		}
+		if len(sensorCfg) == 4 {
+			maxMoisture, err = strconv.ParseFloat(sensorCfg[3], 64)
+			if err != nil {
+				return opt, fmt.Errorf("invalid mininum moisture value: %s", sensorCfg[2])
+			}
 		}
 		opt.Sensors = append(opt.Sensors, Sensors{
-			Name:      sensorCfg[0],
-			Connector: connector,
+			Name:        sensorCfg[0],
+			Connector:   connector,
+			MaxMoisture: minMoisture,
+			MinMoisture: maxMoisture,
 		})
 	}
 
