@@ -1,10 +1,13 @@
 {
     "rust-analyzer.cargo.target": "thumbv6m-none-eabi",
-    "rust-analyzer.checkOnSave.allTargets": false,
     "editor.formatOnSave": true,
     "rust-analyzer.linkedProjects": [
         "./Cargo.toml",
-        "./Cargo.toml"
     ],
-    "rust-analyzer.showUnlinkedFileNotification": false
+    "rust-analyzer.showUnlinkedFileNotification": false,
+    "editor.rulers": [
+        80,
+        120
+    ],
+    "editor.inlayHints.enabled": "offUnlessPressed"
 }
